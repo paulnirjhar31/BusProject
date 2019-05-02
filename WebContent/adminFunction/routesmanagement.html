@@ -1,0 +1,172 @@
+
+<div id="message">
+	<div class="alert alert-success alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert"
+			aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<strong>Routes Management</strong>
+	</div>
+</div>
+
+<h3>
+  Please click on the route
+  <small class="text-muted">*route names feature is not yet implemented</small>
+</h3>
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center" id="routepagination">
+    <li class="page-item disabled">
+      <a class="page-link" href="#" tabindex="-1">Previous</a>
+    </li>
+    <li class="page-item"><a class="page-link" href="#">1</a></li>
+    <li class="page-item">
+      <a class="page-link" href="#">Next</a>
+    </li>
+  </ul>
+</nav>
+<div id="contentArea" class="hidden">
+<div id="mynetwork" style="border: 3px solid lightgrey;height:400px;"></div>
+
+
+<table class="table table-bordered" id="routesDatailsTable">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			<th scope="col">From City</th>
+			<th scope="col">To City</th>
+			<th scope="col">Fare</th>
+			<th scope="col">Time Interval</th>
+		</tr>
+	</thead>
+	<tbody >
+	</tbody>
+</table>
+
+<div class="row" style="
+    margin-left: 1px;
+    margin-top: 5px;
+">
+<button type="button" class="btn btn-success" id="editroute">Edit</button>
+<button type="button" class="btn btn-danger" id="deleteroute">Delete</button>
+</div>
+</div>
+<script src="js/vis.js"></script>
+<script>
+var nodes = null;
+var edges = null;
+var network = null;
+var allRouteids=[];
+var allRouteDetails;
+var graphdata=null;
+function createRouteIds() {
+	console.log(allRouteids);
+	$('#routepagination li:not(:first-child):not(:last-child)').remove();
+	//recreate the pagination	
+	$.each(allRouteids, function(index, value){
+		$('#routepagination li:eq(0)').after('<li class="page-item routeidClick" data="'+value+'"><a class="page-link">'+value+'</a></li>');
+	});	
+	//add even handler
+	$('.routeidClick').click(function(){		
+		var routeid=$(this).attr('data');
+		draw(routeid);
+		return false;
+	})
+}
+
+
+function draw(routeid) {
+	console.log('route id here -----------',routeid);
+	 $("#mynetwork").empty();
+	 $("#routesDatailsTable tbody").empty();
+
+	 
+	 $.each(allRouteDetails, function(index, value) {
+		 console.log('route id -----------',value);
+			if(value.routeid==routeid){
+				graphdata=value;
+			}
+		});
+	
+	 console.log('graph data here-----------------',graphdata);
+	//create nodes
+	nodes=[];
+	$.each(graphdata.busStops, function(index, citydata){
+		nodes.push({id: citydata.cityId, value:3, label:citydata.cityName});
+	});
+	
+	//create the edges
+	edges = [];
+	console.log(nodes);
+	for(var i=0;i<nodes.length-1;i++) {
+		edges.push({from: nodes[i].id, to:nodes[i+1].id, value: 100, arrows:'to' });
+	}
+
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {
+    nodes: {
+      shape: 'dot'
+    },
+    interaction:{
+        dragNodes:true,
+        dragView: true
+    },
+    edges: {
+        arrows: {
+          to: {
+            scaleFactor: 5
+          }
+        }
+      }
+  };
+  network = new vis.Network(container, data, options);
+  
+  //form the table
+  	
+ 	for(var i=0;i<graphdata.busStops.length-1;i++) {
+		var fromCity=graphdata.busStops[i];
+		var toCity=graphdata.busStops[i+1];
+		var index=i+1;
+		var markup='<tr><td>'+index+'</td><td>'+fromCity.cityName+'</td><td>'+toCity.cityName+'</td><td>'+fromCity.fareToReachNextstation+'</td><td>'+fromCity.timeintervalToNextStation+'</td></tr>'             
+		
+		$("#routesDatailsTable tbody").append(markup);
+	}
+  $('#contentArea').removeClass('hidden');
+}
+
+//draw();
+
+	$.get("/BusProject/RoutesController", function(data, status){	
+		allRouteDetails=data;
+		$.each(data, function(index, value) {
+			allRouteids.push(value.routeid);
+			allRouteids.reverse();
+			createRouteIds();
+		});
+		
+	});
+
+ $('#editroute').click(function(){
+	 console.log(graphdata);
+	 popup.alert(
+				{
+					content : 'Feature not implemented, in progress, mean while contact dba to update the db'
+				}
+			);
+ });
+ 
+ $('#deleteroute').click(function(){
+	 console.log(graphdata);
+	 popup.alert(
+				{
+					content : 'Feature not implemented, in progress, mean while contact dba to update the db'
+				}
+			);
+ });
+
+
+</script>

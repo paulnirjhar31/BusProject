@@ -1,0 +1,249 @@
+
+<div id="message">
+	<div class="alert alert-success alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert"
+			aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<strong>Bus Management</strong>
+	</div>
+</div>
+
+<table class="table table-bordered" id="allbustable">
+	<thead>		
+		<tr><th>ID</th><th>Y/F</th><th>Arrival Time</th><th>Base Fare</th><th>Type</th><th>Company Name</th><th>Make</th><th>Route ID</th><th>Action</th><tr>	
+	</thead>
+	<tbody >
+	</tbody>
+</table> 
+
+<button type="button" class="btn btn-success" id="busaddaction">Add</button>
+
+<form  id="busaddform" class="hidden">
+  <div class="form-group">
+    <label for="bcna">Company Name:</label>
+    <input type="text" class="form-control" id="bcna" name="bcna">
+  </div>
+  
+  <div class="form-group">
+    <label for="bma">Make:</label>
+    <input type="text" class="form-control" id="bma" name="bma">
+  </div>
+  
+  <div class="form-group">
+    <label for="bta">Type:</label>
+    <input type="text" class="form-control" id="bta" name="bta">
+  </div>
+  
+  <div class="form-group">
+    <label for="bata">Arrival Time:</label>
+    <input type="text" class="form-control" id="bata" name="bata">
+  </div>
+  
+  <div class="form-group">
+    <label for="bria">Route Id:</label>
+    <select class="form-control" id="bria" name="bria">
+		  <option value="selectroute">Select Route</option>		 
+	</select>
+  </div>
+  
+  <button type="button" class="btn btn-default" id="submitButtonCancel">Cancel</button>
+  <button type="button" class="btn btn-default" id="submitButtonAdd">Submit</button>
+</form>
+
+
+
+<form  id="buseditform" class="hidden">
+  <div class="form-group">
+    <label for="bcne">Company Name:</label>
+    <input type="text" class="form-control" id="bcne" name="bcne">
+  </div>
+  
+  <div class="form-group">
+    <label for="bme">Make:</label>
+    <input type="text" class="form-control" id="bme" name="bme">
+  </div>
+  
+  <div class="form-group">
+    <label for="bte">Type:</label>
+    <input type="text" class="form-control" id="bte" name="bte">
+  </div>
+  
+  <div class="form-group">
+    <label for="bate">Arrival Time:</label>
+    <input type="text" class="form-control" id="bate" name="bate">
+  </div>
+  
+  <div class="form-group">
+    <label for="brie">Route Id:</label>
+    <select class="form-control" id="brie" name="brie">
+		  <option value="selectroute">Select Route</option>		 
+	</select>
+  </div>
+  
+  <div class="form-group">
+    <label for="bae">Active:</label>
+    <select class="form-control" id="bae" name="bae">
+		  <option value="Y">YES</option>
+		   <option value="F">NO</option>			 
+	</select>
+  </div>
+  
+  <button type="button" class="btn btn-default" id="submitButtonCancelEdit">Cancel</button>
+  <button type="button" class="btn btn-default" id="submitButtonEdit">Submit</button>
+</form>
+
+<script>
+	var allBussesData=[];
+	var busdatatobeedited=null;
+	function removeBus(input) {
+		console.log('remove',busid);
+		var busid=input.split('_')[1];
+		 jQuery.ajax({
+		        url: '/BusProject/BusController?busid=' + busid,
+		        type: 'DELETE',
+		        success: function(data) {
+		        	getAllBus();
+		        }
+		    });
+	}
+	
+	function updateBus(input){
+		var busid=input.split('_')[1];
+		console.log('edit',busid);		
+		$.each(allBussesData, function(index, value){
+			if(value.busid==busid) {
+				busdatatobeedited=value;
+			}
+		});
+		//pre populate value
+		$('#bcne').val(busdatatobeedited.companyName);
+		$('#bme').val(busdatatobeedited.make);
+		$('#bte').val(busdatatobeedited.Type);
+		$('#bate').val(busdatatobeedited.arriveTime);
+		//$('#brie').val(busdatatobeedited.routeId);
+		$.get("/BusProject/RoutesController", function(data, status){	
+			allRouteDetails=data;
+			$('#brie').children('option:not(:first)').remove();
+			$.each(data, function(index, value) {
+				console.log(value.routeid);
+				
+				if(busdatatobeedited.routeId==value.routeid){
+					$('#brie')
+				    .append('<option value="'+value.routeid+'" selected>'+value.routeid+'</option>');
+				} else {
+					$('#brie')
+				    .append('<option value="'+value.routeid+'">'+value.routeid+'</option>');
+				}
+				
+			});
+			$('#buseditform').removeClass('hidden');
+		});
+		
+	}
+
+	function getAllBus(){
+		$("#allbustable tbody").empty();
+		$.get("/BusProject/BusController", function(data, status){
+			 var markup=null;
+			 allBussesData=data;
+			$.each(data, function(index, bd) {
+				var markup='<tr><td>'+bd.busid+'</td><td>'+bd.active+'</td><td>'+bd.arriveTime+'</td><td>'+bd.baseFare+'</td><td>'+bd.Type+'</td><td>'+bd.companyName+'</td><td>'+bd.make+'</td><td>'+bd.routeId+'</td><td><button type="button" class="busaction btn btn-danger" busdata="remove_'+bd.busid+'">Remove</button> &nbsp;&nbsp;<button type="button" class="busaction btn btn-primary" busdata="edit_'+bd.busid+'">Edit</button></td><tr>';
+				$("#allbustable tbody").append(markup);
+			});
+			
+			$('.busaction').click(function() { 
+					
+					var type=$(this).attr('busdata');
+					
+					if(type.indexOf('remove')>-1){
+						removeBus($(this).attr('busdata'));
+					} else if(type.indexOf('edit')>-1) {
+						updateBus($(this).attr('busdata'));
+					}					
+				})
+		}); 
+	}
+	
+	
+	$('#busaddaction').click(function() {
+		
+		$.get("/BusProject/RoutesController", function(data, status){	
+			allRouteDetails=data;
+			$('#bria').children('option:not(:first)').remove();
+			$.each(data, function(index, value) {
+				console.log(value.routeid);
+				$('#bria')
+			    .append('<option value="'+value.routeid+'">'+value.routeid+'</option>');
+			});
+			$('#busaddform').removeClass('hidden');
+		});
+		
+		
+	});
+	
+	
+	$('#submitButtonCancelEdit').click(function () {
+		$('#buseditform').addClass('hidden');
+	});
+	$('#submitButtonCancel').click(function () {
+		$('#busaddform').addClass('hidden');
+	});
+	//add bus code
+	$("#submitButtonAdd").click(function() {		
+		console.log('adding bus');
+		var companyname=$('#bcna').val();
+		var make=$('#bma').val();
+		var type=$('#bta').val();
+		var arrivalTime=$('#bata').val();
+		var routeid=$('#bria').children("option:selected").val();
+			
+			console.log(companyname,make, type,arrivalTime,routeid );
+		
+			$.post('/BusProject/BusController',   
+			       {
+						companyname:companyname,
+						make:make,
+						type:type,
+						arrivalTime:arrivalTime,
+						routeid:routeid
+			        }, 
+			       function(data, status, jqXHR) {
+			         console.log(data);	
+			         getAllBus();	
+			         $('#busaddform').addClass('hidden');
+			        }); 
+		
+		
+	});
+	
+	$('#submitButtonEdit').click(function() {
+		console.log('editing bus');
+		var companyname=$('#bcne').val();
+		var make=$('#bme').val();
+		var type=$('#bte').val();
+		var arrivalTime=$('#bate').val();
+		var routeid=$('#brie').children("option:selected").val();
+		var active=$('#bae').children("option:selected").val();	
+			console.log(companyname,make, type,arrivalTime,routeid );
+		
+			$.post('/BusProject/BusController',   
+			       {	
+						id:busdatatobeedited.busid,
+						companyname:companyname,
+						make:make,
+						type:type,
+						arrivalTime:arrivalTime,
+						routeid:routeid,
+						active:active
+			        }, 
+			       function(data, status, jqXHR) {
+			         console.log(data);	
+			         getAllBus();	
+			         $('#buseditform').addClass('hidden');
+			        }); 
+		
+	})
+	
+	getAllBus();
+</script>

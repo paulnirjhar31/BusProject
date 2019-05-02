@@ -1,0 +1,199 @@
+<div id="message">
+	<div class="alert alert-success alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert"
+			aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+		<strong>City Manager</strong>
+	</div>
+</div>
+
+<table class="table table-bordered" id="allCityTable">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			<th scope="col">Name</th>
+			<th scope="col">Type</th>
+			<th scope="col">Active</th>
+			<th scope="col">Action</th>
+		</tr>
+	</thead>
+	<tbody >
+	</tbody>
+</table>
+
+<button type="button" class="btn btn-success" id="cityAddForm">Add</button>
+
+<form class="form-inline hidden" id="cityaddform">
+  <div class="form-group">
+    <label for=cityname>City Name:</label>
+    <input type="text" class="form-control" id="cityname" name="cityname">
+  </div>
+  <div class="form-group">
+  		<label for=cityname>City Type:</label>
+	    <label class="checkbox-inline"><input name="citytype" type="checkbox" value="E">E</label>
+		<label class="checkbox-inline"><input name="citytype" type="checkbox" value="M">M</label>
+  </div>
+  <button type="button" class="btn btn-default" id="submitButtonCancel">Cancel</button>
+  <button type="button" class="btn btn-default" id="submitButtonAdd">Submit</button>
+</form>
+
+
+
+<form class="form-inline hidden" id="cityupdateform">
+  <div class="form-group">
+    <label for=cityname>City Name:</label>
+    <input type="text" class="form-control" id="editcityname" name="editcityname">
+  </div>
+  <div class="form-group">
+  		<label for=cityname>City Type:</label>
+	    <label class="checkbox-inline"><input name="citytypeupdate" type="checkbox" value="E">E</label>
+		<label class="checkbox-inline"><input name="citytypeupdate" type="checkbox" value="M">M</label>
+  </div>
+  <br/>
+  <br/>
+  <div class="form-group">
+  		<label for=citystatus>City Type:</label>
+	    <select name="citystatus" id='statuseditcity' class="select-inline">
+	    	<option value='Y'>YES</option>
+	    	<option value='F'>No</option>
+	   	</select>
+  </div>
+  <br/>
+  <br/>
+  <button type="button" class="btn btn-default" id="submitupdateButtonCancel">Cancel</button>
+  <button type="button" class="btn btn-default" id="submitupdateButtonAdd">Submit</button>
+</form>
+
+
+
+
+<script>
+	var allCitydata;	
+	var editedDetails=null;
+	function removeCity(citydata) {
+		console.log(citydata);
+		var cityId=citydata.split('_')[1];
+		
+		 jQuery.ajax({
+		        url: '/BusProject/City?cityId=' + cityId,
+		        type: 'DELETE',
+		        success: function(data) {
+		        	 getAllCity();
+		        }
+		    });
+		
+	}
+	
+	
+	function updateCity(citydata) {
+		console.log(citydata);
+		var cityId=citydata.split('_')[1];		
+		console.log(allCitydata);		
+		for(var i=0;i<allCitydata.length;i++){
+			if(allCitydata[i].id==cityId){
+				editedDetails=allCitydata[i];
+				break;
+			}
+		}		
+		console.log(editedDetails);
+		//pre populate values 
+		
+		$('#editcityname').val(editedDetails.cityName);	
+		$('#cityupdateform').removeClass('hidden');
+		
+		
+	}
+	
+	function getAllCity() {
+		$.get("/BusProject/City", function(data, status){
+			
+			$("#allCityTable tbody").empty();
+   			allCitydata=data;
+   			for(var i=0;i<data.length;i++) {
+   				console.log(data[i]);
+   			 var markup = "<tr><th scope='row'>"+data[i].id+"</th><td>"+data[i].cityName+"</td><td>" + data[i].cityType + "</td><td>" + data[i].active +"</td><td><button type='button' class='cityaction btn btn-danger' citydata='remove_"+data[i].id+"'>Remove</button> &nbsp;&nbsp;<button type='button' class='cityaction btn btn-primary' citydata='edit_"+data[i].id+"'>Edit</button></td></tr>";
+   			$("#allCityTable tbody").append(markup);
+   			
+   			}
+   			$('.cityaction').click(function() { 
+   				
+   				var type=$(this).attr('citydata');
+   				
+   				if(type.indexOf('remove')>-1){
+   					removeCity($(this).attr('citydata'));
+   				} else if(type.indexOf('edit')>-1) {
+   					updateCity($(this).attr('citydata'));
+   				}
+   				
+   				
+   			})
+  	});
+	}
+	
+	
+	$("#submitButtonAdd").click(function() {		
+		var cityName= $('input[name="cityname"]').val();
+		var cityType=[];			
+		$.each($('input[name="citytype"]:checked'), function(){            
+			cityType.push($(this).val());
+        });
+		
+				
+			$.post('/BusProject/City',   // url
+			       { cityName: cityName,
+					  cityType: cityType.join(',')
+			         }, 
+			       function(data, status, jqXHR) {
+			         console.log(data);	
+			         getAllCity();	
+			         $('#cityaddform').addClass('hidden');
+			        });
+		
+		
+	});
+	
+	
+	//update city function
+	$("#submitupdateButtonAdd").click(function() {		
+		var cityName= $('input[name="editcityname"]').val();
+		var cityType=[];			
+		$.each($('input[name="citytypeupdate"]:checked'), function(){            
+			cityType.push($(this).val());
+        });
+		
+		
+			
+		console.log($("#statuseditcity option:selected").val());
+		
+		$.post('/BusProject/City',   // url
+			       {  id:editedDetails.id, 
+					  cityName: cityName,
+					  cityType: cityType.join(','),
+					  active: $("#statuseditcity option:selected").val()
+			         }, 
+			       function(data, status, jqXHR) {
+			         console.log(data);	
+			         getAllCity();	
+			         $('#cityupdateform').addClass('hidden');
+			        });
+		
+		
+	});
+	
+	
+	$('#cityAddForm').click(function () {
+		$('#cityaddform').removeClass('hidden');
+	});
+	
+	$('#submitButtonCancel').click(function () {
+		$('#cityaddform').addClass('hidden');
+	});
+	
+	
+	$('#submitupdateButtonCancel').click(function () {
+		$('#cityupdateform').addClass('hidden');
+	});
+	getAllCity();
+	
+</script>
