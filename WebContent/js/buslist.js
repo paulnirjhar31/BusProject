@@ -48,7 +48,12 @@ function displaySeat(busId, fromCity, toCity,startDate, endDate) {
         	 
         	 $('.' + settings.seatCss).click(function () {
                  if ($(this).hasClass(settings.selectedSeatCss)){
-                     alert('This seat is already reserved');
+
+                	 popup.alert(
+ 							{
+ 								content : 'Unavailable,please select another'
+ 							}
+ 						);
                  }
                  else{
                      $(this).toggleClass(settings.selectingSeatCss);
@@ -76,6 +81,14 @@ function displaySeat(busId, fromCity, toCity,startDate, endDate) {
                  str.push(item);                   
              });             
              selectedSeat=str.join(',');
+             if(selectedSeat.length<1) {
+            	 	popup.alert(
+							{
+								content : 'Please select atleast one seat'
+							}
+						);
+            	 	return false;
+             }
              
              console.log('busid, selctedseat', selectedSeat, busId, fromCity, toCity,startDate, endDate);
              $('#myModal5').modal('hide');
