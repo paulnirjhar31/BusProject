@@ -67,7 +67,7 @@
 	<p style="margin-top: 15px;font-size: 15px; color: black; font-weight: bold;">Contact Information</p>
 	<div style="margin-top: 20px;"></div>
 	 	<label class="inputLabel">Email ID: </label>
-        <input name="bookingemailid" type="text" required="" style="width: 45%;"><br/>
+        <input name="bookingemailid" type="email" required="true" style="width: 45%;"><br/>
         
         <div style="margin-top: 15px;"></div>
         <label class="inputLabel">Mobile Number: </label>

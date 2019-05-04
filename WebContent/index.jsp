@@ -37,7 +37,7 @@
 		<h3>WORLD'S MOST TRAVEL BRAND</h3>
 	</div>
 	
-	<form action="/BusProject/BusList" method="get">
+	<form action="/BusProject/BusList" method="get" onsubmit="return validate();">
 	<div class="col-md-7 bann-info wow fadeInRight animated" data-wow-delay=".5s">
 		<h2>Online Tickets with Zero Booking Fees</h2>
 		<div class="ban-top">
@@ -55,25 +55,73 @@
 		<div class="ban-bottom">
 			<div class="bnr-right">
 				<label class="inputLabel">Date of Journey</label>
-				<input class="date" name="startDate" id="datepicker" type="text" value="dd-mm-yyyy" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'dd-mm-yyyy';}" required=>
+				<input class="date" name="startDate" id="datepicker" type="text" value="yyyy-mm-dd" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'dd-mm-yyyy';}" required=true>
 			</div>
 			<div class="bnr-right">
 				<label class="inputLabel">Date of Return<span class="opt">&nbsp;(Optional)</span></label>
-				<input class="date"  name="returnDate" id="datepicker1" type="text" value="dd-mm-yyyy" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'dd-mm-yyyy';}" required=>
+				<input class="date" disabled name="returnDate" id="datepicker1" type="text" value="dd-mm-yyyy" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'dd-mm-yyyy';}" required=>
 			</div>
 				<div class="clearfix"></div>
 				<!---start-date-piker---->
 				<link rel="stylesheet" href="css/jquery-ui.css" />
 				<script src="js/jquery-ui.js"></script>
 					<script>
+					
+						function validate(){
+							
+							if($('#fromCity').val()=='Please select from city')  {
+								popup.alert(
+										{
+											content : 'Please select from city'
+										}
+									);
+								return false;
+							}
+							
+							if($('#toCity').val()=='Please select to city')  {
+								popup.alert(
+										{
+											content : 'Please select to city'
+										}
+									);
+								return false;
+							}
+
+							if($('#datepicker').val()=='yyyy-mm-dd')  {
+								popup.alert(
+										{
+											content : 'please select date of journey'
+										}
+									);
+								return false;
+							}
+							
+							
+							return true;
+						} 
 						$(function() {
-						$( "#datepicker,#datepicker1" ).datepicker({ dateFormat: 'yy-mm-dd' });
+						/* $("#datepicker1").datepicker({
+					        	dateFormat: 'yy-mm-dd', 
+					        	minDate:0}); */
+						$( "#datepicker").datepicker({ 
+							dateFormat: 'yy-mm-dd', 
+							 minDate:0, 
+							 onSelect: function(date){
+								 //todate pciket
+							       	 console.log(date);
+							         $("#datepicker1").prop("disabled", false);				
+							        $("#datepicker1").datepicker({
+							        	dateFormat: 'yy-mm-dd', 
+							        	minDate:new Date(date)});
+							    }
+							})
 						});
+						
 					</script>
 		</div>
 		<div class="sear">
 			
-				<input type="Submit" class="seabtn" value="Search Buses"></input>
+				<input type="Submit" class="btn btn-primary" value="Search Buses"></input>
 			
 		</div>
 	</div>
